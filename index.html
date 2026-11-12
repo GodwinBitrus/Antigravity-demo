@@ -1,0 +1,2583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScholarHire - Academic & Career Job Tracking</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9', // Primary Light Blue
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-brand-100 selection:text-brand-900">
+
+  <!-- Main App Root -->
+  <div id="app" class="flex-1 flex flex-col"></div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Application Logic -->
+  <script>
+    // Initial Seed Data for ScholarHire with explicitly defined duties:
+    // 1. You will teach undergraduate and postgraduate students
+    // 2. Conduct and publish research
+    const DEFAULT_JOBS = [
+      {
+        id: 'job-1',
+        title: 'Assistant Professor of Computer Science',
+        department: 'School of Computing',
+        location: 'Boston, MA (Hybrid)',
+        type: 'Full-time',
+        experience: 'Ph.D. or 3+ years research',
+        salary: '$115,000 - $145,000 / yr',
+        postedDate: '2026-11-01',
+        deadline: '2026-12-30',
+        status: 'Active',
+        description: 'ScholarHire is pleased to announce a tenure-track Assistant Professor opening in Computer Science. The successful candidate will foster an active academic environment, teach coursework, and lead cutting-edge investigations.',
+        responsibilities: [
+          'You will teach undergraduate and postgraduate students in foundational and specialized computing courses.',
+          'Conduct and publish research in high-impact peer-reviewed journals and premier international conferences.',
+          'Supervise graduate thesis projects, laboratory research, and student academic dissertations.',
+          'Participate in departmental academic service, curriculum innovation, and grant proposal preparation.'
+        ],
+        requirements: [
+          'Ph.D. in Computer Science, Software Engineering, or related technical field',
+          'Demonstrated track record of peer-reviewed publications or high-impact research',
+          'Commitment to excellence in classroom instruction and student mentorship',
+          'Ability to collaborate on interdisciplinary research grants'
+        ]
+      },
+      {
+        id: 'job-2',
+        title: 'Senior Academic Research Fellow',
+        department: 'Data & AI Institute',
+        location: 'Remote (Global)',
+        type: 'Full-time',
+        experience: '4+ years postdoctoral',
+        salary: '$105,000 - $130,000 / yr',
+        postedDate: '2026-11-04',
+        deadline: '2026-12-15',
+        status: 'Active',
+        description: 'Conduct foundational research at the intersection of AI safety, generative models, and algorithmic fairness. Collaborate with international universities and industry research labs.',
+        responsibilities: [
+          'You will teach undergraduate and postgraduate students through guest lectures, advanced seminars, and lab workshops.',
+          'Conduct and publish research on frontier AI evaluation benchmarks, submitting to venues like NeurIPS, ICML, and ICLR.',
+          'Co-mentor postgraduate research fellows and doctoral candidates on experimental methodologies.',
+          'Lead scholarly workshops and translate findings for both academic and public policy audiences.'
+        ],
+        requirements: [
+          'Doctoral degree or equivalent extensive research portfolio',
+          'Expertise in Python, PyTorch/JAX, and distributed machine learning',
+          'First-author publications at top-tier conferences (NeurIPS, ICML, ICLR, ACL)',
+          'Strong academic communication and open-source contribution ethos'
+        ]
+      },
+      {
+        id: 'job-3',
+        title: 'Associate Professor of Data Science & Economics',
+        department: 'Faculty of Social & Quantitative Sciences',
+        location: 'Chicago, IL (On-site)',
+        type: 'Full-time',
+        experience: '5+ years higher education',
+        salary: '$120,000 - $155,000 / yr',
+        postedDate: '2026-11-06',
+        deadline: '2026-12-20',
+        status: 'Active',
+        description: 'Bridge quantitative methodologies, economic theory, and computational analytics within an innovative interdisciplinary department.',
+        responsibilities: [
+          'You will teach undergraduate and postgraduate students in Econometrics, Big Data Analytics, and Applied Statistics.',
+          'Conduct and publish research investigating digital markets, computational economics, and financial algorithms.',
+          'Mentor postgraduate scholars on econometric empirical research and doctoral thesis defenses.',
+          'Contribute to faculty governance, peer reviews, and academic advisory boards.'
+        ],
+        requirements: [
+          'Ph.D. in Economics, Statistics, Data Science, or related quantitative discipline',
+          'Documented history of high-caliber teaching evaluations and postgraduate advising',
+          'Strong pipeline of ongoing research and grant-supported scholarship',
+          'Exceptional public speaking and collegial collaborative skills'
+        ]
+      },
+      {
+        id: 'job-4',
+        title: 'Instructional Designer & EdTech Faculty Specialist',
+        department: 'Academic Innovation & Digital Learning',
+        location: 'Austin, TX (Remote Eligible)',
+        type: 'Contract',
+        experience: '2+ years EdTech',
+        salary: '$45 - $60 / hr',
+        postedDate: '2026-11-08',
+        deadline: '2026-12-05',
+        status: 'Active',
+        description: 'Collaborate with university faculty to design engaging digital curricula, multimedia coursework, and accessible virtual learning environments.',
+        responsibilities: [
+          'You will teach undergraduate and postgraduate students during digital literacy practicums and educational technology labs.',
+          'Conduct and publish research regarding learning analytics, hybrid pedagogy, and digital accessibility efficacy.',
+          'Support faculty in integrating interactive simulation tools and LMS architectures.',
+          'Evaluate instructional outcomes through quantitative and qualitative learning metrics.'
+        ],
+        requirements: [
+          '2+ years in instructional design or university course authoring',
+          'Proficiency with Canvas, Blackboard, or modern LMS platforms',
+          'Solid understanding of Universal Design for Learning (UDL) guidelines'
+        ]
+      }
+    ];
+
+    const DEFAULT_APPLICATIONS = [
+      {
+        id: 'app-101',
+        jobId: 'job-1',
+        jobTitle: 'Assistant Professor of Computer Science',
+        applicantName: 'Dr. Elena Rostova',
+        applicantEmail: 'elena.rostova@scholarhub.edu',
+        applicantPhone: '+1 (555) 345-6789',
+        linkedin: 'https://linkedin.com/in/elena-rostova-phd',
+        portfolio: 'https://rostova-lab.org',
+        experience: '4 years postdoctoral research',
+        coverLetter: 'Having completed my postdoctoral fellowship at MIT with 6 publications on distributed algorithms, I am eager to contribute to ScholarHire\'s academic community through rigorous teaching and research.',
+        resumeFileName: 'Elena_Rostova_CV_2026.pdf',
+        appliedDate: '2026-11-05',
+        status: 'Interviewing',
+        notes: 'Outstanding research record. Invited for academic seminar presentation next week.'
+      },
+      {
+        id: 'app-102',
+        jobId: 'job-2',
+        jobTitle: 'Senior Academic Research Fellow',
+        applicantName: 'Marcus Vance',
+        applicantEmail: 'm.vance@aigroup.org',
+        applicantPhone: '+1 (555) 789-0123',
+        linkedin: 'https://linkedin.com/in/marcus-vance-ai',
+        portfolio: 'https://marcusvance.tech',
+        experience: '5 years machine learning research',
+        coverLetter: 'My work focuses on model interpretability and evaluation benchmarks. I would love to teach postgraduate fellows and advance the AI Institute’s mission.',
+        resumeFileName: 'Marcus_Vance_Research_CV.pdf',
+        appliedDate: '2026-11-09',
+        status: 'Under Review',
+        notes: 'Reviewing recent NeurIPS spotlight paper.'
+      }
+    ];
+
+    const DEFAULT_NOTIFICATIONS = [
+      {
+        id: 'notif-1',
+        type: 'email_dispatched',
+        toEmail: 'admin@scholarhire.edu',
+        candidateName: 'Dr. Elena Rostova',
+        candidateEmail: 'elena.rostova@scholarhub.edu',
+        jobTitle: 'Assistant Professor of Computer Science',
+        timestamp: '2026-11-05 14:22',
+        subject: '[ScholarHire Alert] New Application: Dr. Elena Rostova for Assistant Professor of Computer Science',
+        preview: 'Dr. Elena Rostova has submitted an application including CV (Elena_Rostova_CV_2026.pdf) and research statement.',
+        read: true,
+        appId: 'app-101'
+      },
+      {
+        id: 'notif-2',
+        type: 'email_dispatched',
+        toEmail: 'admin@scholarhire.edu',
+        candidateName: 'Marcus Vance',
+        candidateEmail: 'm.vance@aigroup.org',
+        jobTitle: 'Senior Academic Research Fellow',
+        timestamp: '2026-11-09 09:41',
+        subject: '[ScholarHire Alert] New Application: Marcus Vance for Senior Academic Research Fellow',
+        preview: 'Marcus Vance has submitted an application with 5 years machine learning research experience.',
+        read: false,
+        appId: 'app-102'
+      }
+    ];
+
+    // State Manager
+    class StateManager {
+      constructor() {
+        this.load();
+      }
+
+      load() {
+        try {
+          const storedJobs = localStorage.getItem('scholarhire_jobs_v3');
+          const storedApps = localStorage.getItem('scholarhire_applications');
+          const storedRole = localStorage.getItem('scholarhire_role');
+          const storedUserEmail = localStorage.getItem('scholarhire_user_email');
+          const storedAdminEmail = localStorage.getItem('scholarhire_admin_email');
+          const storedNotifs = localStorage.getItem('scholarhire_notifications');
+
+          this.jobs = storedJobs ? JSON.parse(storedJobs) : DEFAULT_JOBS;
+          this.applications = storedApps ? JSON.parse(storedApps) : DEFAULT_APPLICATIONS;
+          this.notifications = storedNotifs ? JSON.parse(storedNotifs) : DEFAULT_NOTIFICATIONS;
+          this.currentRole = storedRole || 'user'; // 'user' or 'admin'
+          this.userEmail = storedUserEmail || 'elena.rostova@scholarhub.edu';
+          this.adminEmail = storedAdminEmail || 'admin@scholarhire.edu';
+          this.activeTab = this.currentRole === 'admin' ? 'dashboard' : 'browse';
+          
+          this.searchQuery = '';
+          this.filterDept = 'All';
+          this.filterType = 'All';
+          
+          // Modals
+          this.activeJobModal = null;
+          this.activeApplyModal = null;
+          this.activeJobEditorModal = null;
+          this.activeAppReviewModal = null;
+          this.activeEmailPreviewModal = null;
+          this.activeShareModal = null; // job object for share modal
+          this.showNotificationDrawer = false;
+        } catch (e) {
+          console.error('Failed to load state', e);
+          this.resetToDefaults();
+        }
+      }
+
+      save() {
+        localStorage.setItem('scholarhire_jobs_v3', JSON.stringify(this.jobs));
+        localStorage.setItem('scholarhire_applications', JSON.stringify(this.applications));
+        localStorage.setItem('scholarhire_notifications', JSON.stringify(this.notifications));
+        localStorage.setItem('scholarhire_role', this.currentRole);
+        localStorage.setItem('scholarhire_user_email', this.userEmail);
+        localStorage.setItem('scholarhire_admin_email', this.adminEmail);
+      }
+
+      resetToDefaults() {
+        this.jobs = JSON.parse(JSON.stringify(DEFAULT_JOBS));
+        this.applications = JSON.parse(JSON.stringify(DEFAULT_APPLICATIONS));
+        this.notifications = JSON.parse(JSON.stringify(DEFAULT_NOTIFICATIONS));
+        this.currentRole = 'user';
+        this.adminEmail = 'admin@scholarhire.edu';
+        this.activeTab = 'browse';
+        this.save();
+        render();
+        showToast('Reset to ScholarHire demo data successfully!', 'info');
+      }
+
+      setRole(newRole) {
+        this.currentRole = newRole;
+        this.activeTab = newRole === 'admin' ? 'dashboard' : 'browse';
+        this.save();
+        render();
+      }
+
+      setAdminEmail(newEmail) {
+        if (newEmail && newEmail.includes('@')) {
+          this.adminEmail = newEmail.trim();
+          this.save();
+          render();
+          showToast(`Admin alert email updated to: ${this.adminEmail}`, 'success');
+        } else {
+          showToast('Please enter a valid email address.', 'error');
+        }
+      }
+
+      addJob(jobData) {
+        const newJob = {
+          id: 'job-' + Date.now(),
+          ...jobData,
+          postedDate: new Date().toISOString().split('T')[0],
+          status: 'Active'
+        };
+        this.jobs.unshift(newJob);
+        this.save();
+        render();
+        showToast('Academic job opening posted successfully!', 'success');
+      }
+
+      updateJob(id, updatedFields) {
+        const index = this.jobs.findIndex(j => j.id === id);
+        if (index !== -1) {
+          this.jobs[index] = { ...this.jobs[index], ...updatedFields };
+          this.save();
+          render();
+          showToast('Job listing updated!', 'success');
+        }
+      }
+
+      deleteJob(id) {
+        if (confirm('Are you sure you want to delete this job posting? Associated applications will remain in archive.')) {
+          this.jobs = this.jobs.filter(j => j.id !== id);
+          this.save();
+          render();
+          showToast('Job posting removed.', 'info');
+        }
+      }
+
+      addApplication(applicationData) {
+        const appId = 'app-' + Date.now();
+        const now = new Date();
+        const formattedTimestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const newApp = {
+          id: appId,
+          ...applicationData,
+          appliedDate: now.toISOString().split('T')[0],
+          status: 'Applied',
+          notes: ''
+        };
+        this.applications.unshift(newApp);
+
+        // CREATE & DISPATCH EMAIL NOTIFICATION TO ADMIN
+        const emailSubject = `[ScholarHire Alert] New Application: ${newApp.applicantName} for ${newApp.jobTitle}`;
+        const emailPreview = `${newApp.applicantName} (${newApp.applicantEmail}) applied for ${newApp.jobTitle}. CV: ${newApp.resumeFileName || 'CV.pdf'}.`;
+        
+        const newNotification = {
+          id: 'notif-' + Date.now(),
+          type: 'email_dispatched',
+          toEmail: this.adminEmail,
+          candidateName: newApp.applicantName,
+          candidateEmail: newApp.applicantEmail,
+          jobTitle: newApp.jobTitle,
+          timestamp: formattedTimestamp,
+          subject: emailSubject,
+          preview: emailPreview,
+          coverLetter: newApp.coverLetter || 'No cover statement provided.',
+          experience: newApp.experience || 'Not specified',
+          phone: newApp.applicantPhone || 'Not provided',
+          portfolio: newApp.portfolio || '',
+          linkedin: newApp.linkedin || '',
+          resumeFileName: newApp.resumeFileName || 'Candidate_CV.pdf',
+          read: false,
+          appId: appId
+        };
+
+        this.notifications.unshift(newNotification);
+        this.save();
+
+        showEmailDispatchedToast(newNotification);
+        render();
+      }
+
+      updateApplicationStatus(appId, newStatus, newNotes = null) {
+        const app = this.applications.find(a => a.id === appId);
+        if (app) {
+          app.status = newStatus;
+          if (newNotes !== null) app.notes = newNotes;
+          this.save();
+          render();
+          showToast(`Application status updated to "${newStatus}"`, 'success');
+        }
+      }
+
+      withdrawApplication(appId) {
+        if (confirm('Are you sure you want to withdraw this application?')) {
+          this.applications = this.applications.filter(a => a.id !== appId);
+          this.save();
+          render();
+          showToast('Application withdrawn.', 'info');
+        }
+      }
+
+      markAllNotificationsAsRead() {
+        this.notifications.forEach(n => n.read = true);
+        this.save();
+        render();
+      }
+
+      getUnreadNotificationsCount() {
+        return this.notifications.filter(n => !n.read).length;
+      }
+    }
+
+    const state = new StateManager();
+
+    // Check URL parameters for direct job share link on initial load
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedJobId = urlParams.get('job');
+      if (sharedJobId && state.jobs.some(j => j.id === sharedJobId)) {
+        openJobDetailModal(sharedJobId);
+      }
+    });
+
+    // Custom Toast Notification System
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgColors = {
+        success: 'bg-emerald-600 text-white shadow-emerald-200',
+        info: 'bg-brand-600 text-white shadow-brand-200',
+        warning: 'bg-amber-500 text-white shadow-amber-200',
+        error: 'bg-rose-600 text-white shadow-rose-200'
+      };
+      
+      const icons = {
+        success: 'fa-circle-check',
+        info: 'fa-circle-info',
+        warning: 'fa-triangle-exclamation',
+        error: 'fa-circle-xmark'
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-lg transform transition-all duration-300 translate-y-3 opacity-0 text-sm font-medium ${bgColors[type] || bgColors.info}`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icons[type] || icons.info} text-base"></i>
+        <span>${message}</span>
+      `;
+      
+      container.appendChild(toast);
+      
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Special Toast for Email Notification Dispatch
+    function showEmailDispatchedToast(notif) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      toast.className = `pointer-events-auto flex flex-col p-4 rounded-2xl shadow-xl bg-slate-900 text-white border border-brand-400/40 transform transition-all duration-300 translate-y-3 opacity-0 text-xs max-w-sm`;
+      toast.innerHTML = `
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <div class="flex items-center gap-2 text-brand-400 font-bold">
+            <span class="w-2 h-2 rounded-full bg-brand-400 animate-ping"></span>
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Email Notification Dispatched</span>
+          </div>
+          <span class="text-[10px] text-slate-400">Just now</span>
+        </div>
+        <p class="text-slate-300 text-[11px] leading-relaxed">
+          Admin alert sent to <strong class="text-white">${escapeHtml(notif.toEmail)}</strong> for new applicant <strong class="text-brand-300">${escapeHtml(notif.candidateName)}</strong>.
+        </p>
+        <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
+          <button onclick="openEmailPreviewModal('${notif.id}')" class="text-brand-400 hover:text-brand-300 font-semibold underline text-[11px] flex items-center gap-1">
+            <i class="fa-solid fa-envelope-open-text"></i> View Dispatched Email
+          </button>
+          <span class="text-[10px] text-slate-400">ScholarHire Mailer</span>
+        </div>
+      `;
+      
+      container.appendChild(toast);
+      
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-4');
+        setTimeout(() => toast.remove(), 400);
+      }, 6500);
+    }
+
+    function getStatusBadge(status) {
+      const styles = {
+        'Applied': 'bg-sky-100 text-sky-800 border-sky-200',
+        'Under Review': 'bg-amber-100 text-amber-800 border-amber-200',
+        'Interviewing': 'bg-purple-100 text-purple-800 border-purple-200',
+        'Offer Extended': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        'Rejected': 'bg-rose-100 text-rose-800 border-rose-200'
+      };
+      return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${styles[status] || 'bg-slate-100 text-slate-700 border-slate-200'}">
+        <span class="w-1.5 h-1.5 rounded-full ${status === 'Offer Extended' ? 'bg-emerald-500' : status === 'Interviewing' ? 'bg-purple-500' : status === 'Under Review' ? 'bg-amber-500' : status === 'Rejected' ? 'bg-rose-500' : 'bg-sky-500'}"></span>
+        ${status}
+      </span>`;
+    }
+
+    // Main App Renderer
+    function render() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        ${renderHeader()}
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          ${state.currentRole === 'admin' ? renderAdminPortal() : renderUserPortal()}
+        </main>
+        ${renderFooter()}
+        ${renderModals()}
+      `;
+    }
+
+    // Header Component
+    function renderHeader() {
+      const isAdmin = state.currentRole === 'admin';
+      const unreadCount = state.getUnreadNotificationsCount();
+
+      return `
+        <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-18">
+              
+              <!-- ScholarHire Logo -->
+              <div class="flex items-center gap-3 cursor-pointer" onclick="state.activeTab = '${isAdmin ? 'dashboard' : 'browse'}'; render();">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                  <i class="fa-solid fa-graduation-cap text-lg"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl font-bold tracking-tight text-slate-900">Scholar<span class="text-brand-500">Hire</span></span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${isAdmin ? 'bg-indigo-100 text-indigo-700' : 'bg-brand-100 text-brand-700'}">
+                      ${isAdmin ? 'Admin Portal' : 'Candidate Portal'}
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500 -mt-0.5">Academic & Career Opportunity Tracker</p>
+                </div>
+              </div>
+
+              <!-- Main Navigation Links -->
+              <div class="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl">
+                ${!isAdmin ? `
+                  <button onclick="state.activeTab = 'browse'; render();" class="px-4 py-2 rounded-lg text-sm font-semibold transition ${state.activeTab === 'browse' ? 'bg-white text-brand-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                    <i class="fa-solid fa-compass mr-1.5 text-xs"></i> Browse Positions (${state.jobs.filter(j => j.status === 'Active').length})
+                  </button>
+                  <button onclick="state.activeTab = 'my-apps'; render();" class="px-4 py-2 rounded-lg text-sm font-semibold transition relative ${state.activeTab === 'my-apps' ? 'bg-white text-brand-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                    <i class="fa-solid fa-file-signature mr-1.5 text-xs"></i> My Applications
+                    ${getUserApplicationsCount() > 0 ? `<span class="ml-1.5 px-1.5 py-0.2 rounded-full text-[11px] bg-brand-500 text-white font-bold">${getUserApplicationsCount()}</span>` : ''}
+                  </button>
+                ` : `
+                  <button onclick="state.activeTab = 'dashboard'; render();" class="px-4 py-2 rounded-lg text-sm font-semibold transition ${state.activeTab === 'dashboard' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                    <i class="fa-solid fa-chart-pie mr-1.5 text-xs"></i> Dashboard
+                  </button>
+                  <button onclick="state.activeTab = 'manage-jobs'; render();" class="px-4 py-2 rounded-lg text-sm font-semibold transition ${state.activeTab === 'manage-jobs' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                    <i class="fa-solid fa-list-check mr-1.5 text-xs"></i> Manage Jobs (${state.jobs.length})
+                  </button>
+                  <button onclick="state.activeTab = 'applicants'; render();" class="px-4 py-2 rounded-lg text-sm font-semibold transition ${state.activeTab === 'applicants' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'}">
+                    <i class="fa-solid fa-users mr-1.5 text-xs"></i> Candidate Pipeline (${state.applications.length})
+                  </button>
+                `}
+              </div>
+
+              <!-- Header Right Actions: Email Notifications & Role Switcher -->
+              <div class="flex items-center gap-3">
+                
+                <!-- Email Notifications Bell Button -->
+                <button 
+                  onclick="toggleNotificationDrawer()"
+                  class="relative p-2.5 rounded-xl bg-slate-100 hover:bg-brand-50 text-slate-600 hover:text-brand-600 border border-slate-200 transition" 
+                  title="Admin Email Notifications"
+                >
+                  <i class="fa-regular fa-bell text-base"></i>
+                  ${unreadCount > 0 ? `
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center shadow-xs animate-bounce">
+                      ${unreadCount}
+                    </span>
+                  ` : ''}
+                </button>
+
+                ${isAdmin ? `
+                  <button onclick="openJobEditorModal()" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm rounded-xl shadow-sm shadow-brand-500/25 transition">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Post Opening</span>
+                  </button>
+                ` : ''}
+
+                <!-- Role Switcher Pill -->
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                  <button onclick="state.setRole('user')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${!isAdmin ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'}">
+                    <i class="fa-solid fa-user-graduate text-brand-500"></i>
+                    <span>Candidate</span>
+                  </button>
+                  <button onclick="state.setRole('admin')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${isAdmin ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'}">
+                    <i class="fa-solid fa-shield-halved ${isAdmin ? 'text-white' : 'text-indigo-500'}"></i>
+                    <span>Admin</span>
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- Mobile sub-navigation -->
+            <div class="flex md:hidden border-t border-slate-100 py-2.5 gap-2 overflow-x-auto">
+              ${!isAdmin ? `
+                <button onclick="state.activeTab = 'browse'; render();" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${state.activeTab === 'browse' ? 'bg-brand-50 text-brand-700' : 'text-slate-600'}">
+                  Browse Positions (${state.jobs.filter(j => j.status === 'Active').length})
+                </button>
+                <button onclick="state.activeTab = 'my-apps'; render();" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${state.activeTab === 'my-apps' ? 'bg-brand-50 text-brand-700' : 'text-slate-600'}">
+                  My Applications (${getUserApplicationsCount()})
+                </button>
+              ` : `
+                <button onclick="state.activeTab = 'dashboard'; render();" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${state.activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600'}">
+                  Dashboard
+                </button>
+                <button onclick="state.activeTab = 'manage-jobs'; render();" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${state.activeTab === 'manage-jobs' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600'}">
+                  Manage Jobs (${state.jobs.length})
+                </button>
+                <button onclick="state.activeTab = 'applicants'; render();" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${state.activeTab === 'applicants' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600'}">
+                  Candidates (${state.applications.length})
+                </button>
+              `}
+            </div>
+          </div>
+        </header>
+      `;
+    }
+
+    function getUserApplicationsCount() {
+      return state.applications.filter(a => a.applicantEmail.toLowerCase() === state.userEmail.toLowerCase()).length;
+    }
+
+    // ==========================================
+    // USER / CANDIDATE PORTAL VIEWS
+    // ==========================================
+    function renderUserPortal() {
+      if (state.activeTab === 'my-apps') {
+        return renderMyApplicationsView();
+      }
+      return renderJobBrowserView();
+    }
+
+    function renderJobBrowserView() {
+      const filteredJobs = state.jobs.filter(job => {
+        if (job.status !== 'Active') return false;
+        const matchesQuery = job.title.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                             job.department.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                             job.description.toLowerCase().includes(state.searchQuery.toLowerCase());
+        const matchesDept = state.filterDept === 'All' || job.department === state.filterDept;
+        const matchesType = state.filterType === 'All' || job.type === state.filterType;
+        return matchesQuery && matchesDept && matchesType;
+      });
+
+      const departments = ['All', ...new Set(state.jobs.map(j => j.department))];
+      const jobTypes = ['All', 'Full-time', 'Part-time', 'Contract', 'Internship'];
+
+      return `
+        <div class="space-y-8">
+          
+          <!-- Hero Section with Light Blue Theme -->
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-50 via-white to-sky-100/60 border border-brand-100 p-8 sm:p-12 shadow-sm">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-brand-200/40 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="max-w-3xl">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-800 mb-4">
+                <i class="fa-solid fa-graduation-cap text-brand-500"></i> Academic & Professional Careers
+              </span>
+              <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Advance Your Calling with <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-brand-700">ScholarHire</span>
+              </h1>
+              <p class="mt-3 text-base sm:text-lg text-slate-600 max-w-2xl">
+                Explore faculty appointments and research opportunities. Teach undergraduate and postgraduate scholars, conduct impactful research, and easily share or apply to openings.
+              </p>
+
+              <!-- Search Bar -->
+              <div class="mt-8 bg-white p-2.5 rounded-2xl shadow-lg shadow-brand-900/5 border border-slate-200 flex flex-col md:flex-row gap-2">
+                <div class="flex-1 flex items-center px-4 py-2 gap-3 text-slate-400">
+                  <i class="fa-solid fa-magnifying-glass text-brand-500"></i>
+                  <input 
+                    type="text" 
+                    value="${escapeHtml(state.searchQuery)}"
+                    placeholder="Search by academic discipline, research field, or keyword..." 
+                    class="w-full text-sm text-slate-800 placeholder-slate-400 focus:outline-hidden"
+                    oninput="state.searchQuery = this.value; render();"
+                  >
+                  ${state.searchQuery ? `
+                    <button onclick="state.searchQuery = ''; render();" class="text-slate-400 hover:text-slate-600">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  ` : ''}
+                </div>
+
+                <div class="flex flex-wrap sm:flex-nowrap gap-2">
+                  <select 
+                    class="text-xs font-medium bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2.5 focus:outline-hidden focus:border-brand-400"
+                    onchange="state.filterDept = this.value; render();"
+                  >
+                    ${departments.map(d => `<option value="${d}" ${state.filterDept === d ? 'selected' : ''}>Dept: ${d}</option>`).join('')}
+                  </select>
+
+                  <select 
+                    class="text-xs font-medium bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2.5 focus:outline-hidden focus:border-brand-400"
+                    onchange="state.filterType = this.value; render();"
+                  >
+                    ${jobTypes.map(t => `<option value="${t}" ${state.filterType === t ? 'selected' : ''}>Type: ${t}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Candidate Profile Note -->
+              <div class="mt-4 flex items-center gap-2 text-xs text-slate-500">
+                <span class="font-medium text-slate-700">Active Candidate Profile:</span>
+                <span class="bg-white/80 px-2 py-0.5 rounded-md border border-slate-200 font-mono text-slate-600">${state.userEmail}</span>
+                <button onclick="promptUserEmail()" class="text-brand-600 hover:text-brand-700 underline font-medium">Switch Profile</button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Listings Header -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">Academic & Research Positions</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Showing ${filteredJobs.length} active position${filteredJobs.length === 1 ? '' : 's'}</p>
+            </div>
+            ${(state.searchQuery || state.filterDept !== 'All' || state.filterType !== 'All') ? `
+              <button onclick="state.searchQuery = ''; state.filterDept = 'All'; state.filterType = 'All'; render();" class="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Clear all filters
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Job Cards Grid with Share, Details & Apply buttons -->
+          ${filteredJobs.length === 0 ? `
+            <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+              <div class="w-14 h-14 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-book-open text-2xl"></i>
+              </div>
+              <h3 class="text-lg font-bold text-slate-800">No positions match your search</h3>
+              <p class="text-sm text-slate-500 max-w-md mx-auto mt-1">Try broadening your search keywords or clear your department filters.</p>
+              <button onclick="state.searchQuery = ''; state.filterDept = 'All'; state.filterType = 'All'; render();" class="mt-4 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold transition">
+                Reset Filters
+              </button>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+              ${filteredJobs.map(job => renderCandidateJobCard(job)).join('')}
+            </div>
+          `}
+
+        </div>
+      `;
+    }
+
+    // Candidate Job Card with Share Button, Details Button, and Apply Button
+    function renderCandidateJobCard(job) {
+      const alreadyApplied = state.applications.some(a => a.jobId === job.id && a.applicantEmail.toLowerCase() === state.userEmail.toLowerCase());
+
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs hover:shadow-md hover:border-brand-300 transition flex flex-col justify-between group">
+          <div>
+            <!-- Top Badges & Share quick action -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-100">
+                  ${escapeHtml(job.department)}
+                </span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
+                  ${escapeHtml(job.type)}
+                </span>
+              </div>
+              
+              <div class="flex items-center gap-1.5">
+                ${alreadyApplied ? `
+                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                    <i class="fa-solid fa-check-circle"></i> Applied
+                  </span>
+                ` : `
+                  <span class="text-xs text-slate-400 flex items-center gap-1">
+                    <i class="fa-regular fa-calendar"></i> Posted ${job.postedDate}
+                  </span>
+                `}
+              </div>
+            </div>
+
+            <!-- Position Title -->
+            <h3 class="text-lg font-bold text-slate-900 group-hover:text-brand-600 transition">
+              ${escapeHtml(job.title)}
+            </h3>
+
+            <!-- Key Info Pills -->
+            <div class="flex flex-wrap items-center gap-y-2 gap-x-4 mt-3 text-xs text-slate-500">
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-location-dot text-brand-400"></i> ${escapeHtml(job.location)}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-coins text-brand-400"></i> ${escapeHtml(job.salary || 'Academic scale')}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-award text-brand-400"></i> ${escapeHtml(job.experience || 'Not specified')}
+              </span>
+            </div>
+
+            <!-- Brief Highlights (Teaching & Research) -->
+            <div class="mt-4 p-3 bg-brand-50/50 rounded-xl border border-brand-100/60 text-xs space-y-1.5 text-slate-700">
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-graduation-cap text-brand-500 mt-0.5 text-xs"></i>
+                <span class="line-clamp-1"><strong>Teaching:</strong> You will teach undergraduates and postgraduate students</span>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-microscope text-brand-500 mt-0.5 text-xs"></i>
+                <span class="line-clamp-1"><strong>Research:</strong> Conduct and publish research in peer-reviewed venues</span>
+              </div>
+            </div>
+
+            <!-- Short Description -->
+            <p class="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+              ${escapeHtml(job.description)}
+            </p>
+          </div>
+
+          <!-- Bottom Action Buttons: Share, Details, Apply -->
+          <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+            
+            <!-- 1. SHARE BUTTON -->
+            <button 
+              type="button"
+              onclick="openShareModal('${job.id}')"
+              class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200 hover:border-brand-200 text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs"
+              title="Share job link"
+            >
+              <i class="fa-solid fa-share-nodes text-brand-500"></i>
+              <span>Share</span>
+            </button>
+
+            <!-- 2. DETAILS BUTTON -->
+            <button 
+              type="button"
+              onclick="openJobDetailModal('${job.id}')"
+              class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs"
+              title="View full job details"
+            >
+              <i class="fa-solid fa-circle-info text-slate-500"></i>
+              <span>Details</span>
+            </button>
+
+            <!-- 3. APPLY BUTTON -->
+            ${alreadyApplied ? `
+              <button 
+                type="button"
+                onclick="state.activeTab = 'my-apps'; render();"
+                class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-200 transition flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-list-check"></i>
+                <span>Track Status</span>
+              </button>
+            ` : `
+              <button 
+                type="button"
+                onclick="openApplyModal('${job.id}')"
+                class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold rounded-xl shadow-xs shadow-brand-500/25 transition flex items-center gap-1.5 flex-1 justify-center sm:flex-none"
+              >
+                <i class="fa-solid fa-paper-plane text-[11px]"></i>
+                <span>Apply</span>
+              </button>
+            `}
+
+          </div>
+
+        </div>
+      `;
+    }
+
+    // Candidate "My Applications"
+    function renderMyApplicationsView() {
+      const myApplications = state.applications.filter(
+        a => a.applicantEmail.toLowerCase() === state.userEmail.toLowerCase()
+      );
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-2xl font-bold text-slate-900">My Scholar Applications</h1>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-100 text-brand-700">${myApplications.length}</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">
+                Submissions tracked under <strong class="text-slate-700">${escapeHtml(state.userEmail)}</strong>
+              </p>
+            </div>
+            <button onclick="promptUserEmail()" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+              <i class="fa-solid fa-envelope mr-1 text-slate-400"></i> Change Email
+            </button>
+          </div>
+
+          ${myApplications.length === 0 ? `
+            <div class="bg-white rounded-2xl border border-slate-200 text-center py-16 px-6">
+              <div class="w-16 h-16 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-regular fa-folder-open text-2xl"></i>
+              </div>
+              <h2 class="text-lg font-bold text-slate-800">No applications on record yet</h2>
+              <p class="text-sm text-slate-500 max-w-md mx-auto mt-1">Search through available ScholarHire positions and submit your candidacy.</p>
+              <button onclick="state.activeTab = 'browse'; render();" class="mt-5 px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold shadow-xs transition">
+                Browse Openings
+              </button>
+            </div>
+          ` : `
+            <div class="space-y-4">
+              ${myApplications.map(app => renderUserApplicationCard(app)).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function renderUserApplicationCard(app) {
+      const job = state.jobs.find(j => j.id === app.jobId);
+      const stages = ['Applied', 'Under Review', 'Interviewing', 'Offer Extended'];
+      const isRejected = app.status === 'Rejected';
+      const currentIndex = stages.indexOf(app.status);
+
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <h3 class="text-lg font-bold text-slate-900">${escapeHtml(app.jobTitle)}</h3>
+                ${getStatusBadge(app.status)}
+              </div>
+              <div class="flex flex-wrap items-center gap-4 mt-2 text-xs text-slate-500">
+                <span><i class="fa-regular fa-calendar mr-1 text-slate-400"></i> Applied on ${app.appliedDate}</span>
+                ${job ? `<span><i class="fa-solid fa-building-columns mr-1 text-slate-400"></i> ${escapeHtml(job.department)}</span>` : ''}
+                <span><i class="fa-regular fa-file-pdf mr-1 text-slate-400"></i> ${escapeHtml(app.resumeFileName || 'CV.pdf')}</span>
+                <span class="text-emerald-600 flex items-center gap-1 font-medium">
+                  <i class="fa-solid fa-envelope-circle-check"></i> Admin Notified via Email
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              ${job ? `
+                <button onclick="openShareModal('${job.id}')" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition flex items-center gap-1">
+                  <i class="fa-solid fa-share-nodes text-brand-500"></i> Share
+                </button>
+                <button onclick="openJobDetailModal('${job.id}')" class="px-3 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-lg transition">
+                  Details
+                </button>
+              ` : ''}
+              <button onclick="state.withdrawApplication('${app.id}')" class="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                Withdraw
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress Stepper -->
+          <div class="mt-6 pt-6 border-t border-slate-100">
+            <p class="text-xs font-semibold text-slate-700 mb-4">Application Progress Review:</p>
+            ${isRejected ? `
+              <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-800 text-xs">
+                <i class="fa-solid fa-circle-xmark text-rose-600 text-sm"></i>
+                <span>Thank you for your application to ScholarHire. We have proceeded with other candidates whose research directly aligns with the current term.</span>
+              </div>
+            ` : `
+              <div class="grid grid-cols-4 gap-2 text-center">
+                ${stages.map((stage, idx) => {
+                  const isDone = currentIndex >= idx;
+                  const isCurrent = currentIndex === idx;
+                  return `
+                    <div class="flex flex-col items-center">
+                      <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition mb-1.5 ${isCurrent ? 'bg-brand-500 text-white ring-4 ring-brand-100' : isDone ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}">
+                        ${isDone ? '<i class="fa-solid fa-check text-[10px]"></i>' : idx + 1}
+                      </div>
+                      <span class="text-[11px] font-medium ${isCurrent ? 'text-brand-600 font-bold' : isDone ? 'text-slate-800' : 'text-slate-400'}">
+                        ${stage}
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+
+            ${app.notes ? `
+              <div class="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                <strong class="text-slate-800 font-semibold"><i class="fa-solid fa-note-sticky text-brand-500 mr-1"></i> Committee Feedback:</strong> ${escapeHtml(app.notes)}
+              </div>
+            ` : ''}
+          </div>
+
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // ADMIN PORTAL VIEWS
+    // ==========================================
+    function renderAdminPortal() {
+      if (state.activeTab === 'manage-jobs') {
+        return renderAdminManageJobsView();
+      }
+      if (state.activeTab === 'applicants') {
+        return renderAdminApplicantsPipelineView();
+      }
+      return renderAdminDashboardView();
+    }
+
+    function renderAdminDashboardView() {
+      const totalJobs = state.jobs.length;
+      const activeJobs = state.jobs.filter(j => j.status === 'Active').length;
+      const totalApps = state.applications.length;
+      const hiredApps = state.applications.filter(a => a.status === 'Offer Extended').length;
+
+      return `
+        <div class="space-y-8">
+          
+          <!-- Admin Banner with Email Alert Indicator -->
+          <div class="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-lg">
+            <div class="absolute right-0 top-0 w-80 h-80 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="max-w-2xl relative z-10">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-brand-300 mb-3 border border-white/10">
+                <i class="fa-solid fa-shield-halved text-xs"></i> ScholarHire Administrative Portal
+              </span>
+              <h1 class="text-3xl font-extrabold tracking-tight">Recruitment & Academic Intake</h1>
+              <p class="mt-2 text-sm text-slate-300">
+                Automated email alerts are active for <strong class="text-white underline">${escapeHtml(state.adminEmail)}</strong>. Every time a candidate applies, a detailed notification is routed to your inbox.
+              </p>
+              
+              <div class="mt-6 flex flex-wrap items-center gap-3">
+                <button onclick="openJobEditorModal()" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-400 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+                  <i class="fa-solid fa-plus"></i> Post Opening
+                </button>
+                <button onclick="toggleNotificationDrawer()" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-xl border border-white/10 transition flex items-center gap-2">
+                  <i class="fa-solid fa-envelope-open-text text-brand-400"></i> View Email Alerts (${state.notifications.length})
+                </button>
+                <button onclick="promptAdminEmail()" class="px-3 py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs rounded-xl transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-gear"></i> Change Alert Email
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metrics Row -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                <span>Active Openings</span>
+                <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+                  <i class="fa-solid fa-briefcase"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">${activeJobs}</span>
+                <span class="text-xs text-slate-400">/ ${totalJobs} total</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                <span>Total Applications</span>
+                <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                  <i class="fa-solid fa-file-signature"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">${totalApps}</span>
+                <span class="text-xs text-sky-600 font-semibold">Logged</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                <span>Email Alerts Dispatched</span>
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <i class="fa-solid fa-envelope"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">${state.notifications.length}</span>
+                <span class="text-xs text-emerald-600 font-semibold">To Admin</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                <span>Offers Extended</span>
+                <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <i class="fa-solid fa-award"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">${hiredApps}</span>
+                <span class="text-xs text-purple-600 font-semibold">Accepted</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Recent Applications Table & Active Openings -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 class="text-base font-bold text-slate-900">Recent Scholar Candidates</h2>
+                    <p class="text-xs text-slate-500">Every application automatically dispatches an email alert</p>
+                  </div>
+                  <button onclick="state.activeTab = 'applicants'; render();" class="text-xs font-semibold text-brand-600 hover:text-brand-700">
+                    View All (${state.applications.length})
+                  </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs">
+                    <thead>
+                      <tr class="border-b border-slate-100 text-slate-400 font-medium">
+                        <th class="pb-3">Applicant</th>
+                        <th class="pb-3">Applied Role</th>
+                        <th class="pb-3">Date</th>
+                        <th class="pb-3">Status</th>
+                        <th class="pb-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      ${state.applications.slice(0, 5).map(app => `
+                        <tr class="hover:bg-slate-50/80 transition">
+                          <td class="py-3 font-semibold text-slate-800">
+                            <div>${escapeHtml(app.applicantName)}</div>
+                            <div class="text-[11px] font-normal text-slate-400">${escapeHtml(app.applicantEmail)}</div>
+                          </td>
+                          <td class="py-3 text-slate-600">${escapeHtml(app.jobTitle)}</td>
+                          <td class="py-3 text-slate-400">${app.appliedDate}</td>
+                          <td class="py-3">${getStatusBadge(app.status)}</td>
+                          <td class="py-3 text-right">
+                            <button onclick="openAppReviewModal('${app.id}')" class="px-2.5 py-1 text-xs font-semibold text-brand-600 hover:bg-brand-50 rounded-lg">
+                              Review
+                            </button>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email Notification Feed Panel -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-md bg-brand-50 text-brand-600 flex items-center justify-center text-xs">
+                      <i class="fa-solid fa-inbox"></i>
+                    </div>
+                    <h2 class="text-base font-bold text-slate-900">Email Dispatch Log</h2>
+                  </div>
+                  <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded font-mono text-slate-600">
+                    ${escapeHtml(state.adminEmail)}
+                  </span>
+                </div>
+
+                <div class="space-y-3">
+                  ${state.notifications.slice(0, 3).map(notif => `
+                    <div onclick="openEmailPreviewModal('${notif.id}')" class="p-3 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-brand-50/50 hover:border-brand-200 cursor-pointer transition">
+                      <div class="flex items-center justify-between text-[11px] font-bold text-slate-800">
+                        <span class="truncate max-w-[170px]"><i class="fa-regular fa-envelope text-brand-500 mr-1"></i> ${escapeHtml(notif.candidateName)}</span>
+                        <span class="text-[10px] text-slate-400 font-normal">${notif.timestamp.split(' ')[0]}</span>
+                      </div>
+                      <p class="text-[11px] text-slate-500 mt-1 line-clamp-1">${escapeHtml(notif.jobTitle)}</p>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-100">
+                <button onclick="toggleNotificationDrawer()" class="w-full py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded-xl transition text-center flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-envelope-open-text"></i> Open Full Email Dispatch Drawer
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      `;
+    }
+
+    function renderAdminManageJobsView() {
+      return `
+        <div class="space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">Manage Job Postings</h1>
+              <p class="text-xs text-slate-500 mt-1">Publish faculty and research appointments, edit qualifications, and toggle listing visibility.</p>
+            </div>
+            <button onclick="openJobEditorModal()" class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+              <i class="fa-solid fa-plus"></i> Post New Opening
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold">
+                    <th class="p-4">Position Title</th>
+                    <th class="p-4">Department</th>
+                    <th class="p-4">Location & Type</th>
+                    <th class="p-4">Compensation</th>
+                    <th class="p-4">Applicants</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${state.jobs.map(job => {
+                    const appCount = state.applications.filter(a => a.jobId === job.id).length;
+                    return `
+                      <tr class="hover:bg-slate-50/50 transition">
+                        <td class="p-4">
+                          <div class="font-bold text-slate-900">${escapeHtml(job.title)}</div>
+                          <div class="text-[11px] text-slate-400">Posted on ${job.postedDate}</div>
+                        </td>
+                        <td class="p-4 text-slate-600 font-medium">${escapeHtml(job.department)}</td>
+                        <td class="p-4 text-slate-600">
+                          <div>${escapeHtml(job.location)}</div>
+                          <div class="text-[11px] text-slate-400">${escapeHtml(job.type)}</div>
+                        </td>
+                        <td class="p-4 text-slate-600 font-medium">${escapeHtml(job.salary || 'Academic scale')}</td>
+                        <td class="p-4">
+                          <button 
+                            onclick="state.activeTab = 'applicants'; window.adminFilterStatus = 'All'; render();"
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-50 text-brand-700 hover:bg-brand-100 transition"
+                          >
+                            <i class="fa-solid fa-user-graduate text-[10px]"></i> ${appCount}
+                          </button>
+                        </td>
+                        <td class="p-4">
+                          <button 
+                            onclick="toggleJobStatus('${job.id}')"
+                            class="px-2.5 py-1 rounded-full text-[11px] font-bold border transition ${job.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}"
+                            title="Click to toggle status"
+                          >
+                            ${job.status}
+                          </button>
+                        </td>
+                        <td class="p-4 text-right">
+                          <div class="flex items-center justify-end gap-1">
+                            <button onclick="openShareModal('${job.id}')" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Share Job Link">
+                              <i class="fa-solid fa-share-nodes"></i>
+                            </button>
+                            <button onclick="openJobEditorModal('${job.id}')" class="p-2 text-slate-500 hover:text-brand-600 hover:bg-slate-100 rounded-lg transition" title="Edit">
+                              <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="openJobDetailModal('${job.id}')" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="Preview Details">
+                              <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                            <button onclick="state.deleteJob('${job.id}')" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Delete">
+                              <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdminApplicantsPipelineView() {
+      const statusList = ['All', 'Applied', 'Under Review', 'Interviewing', 'Offer Extended', 'Rejected'];
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900">Candidate Pipeline & Review</h1>
+              <p class="text-xs text-slate-500 mt-1">Review applicant profiles, change review stages, and add committee evaluation notes.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-500">Total Applicants:</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-brand-100 text-brand-800">${state.applications.length}</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-3">
+            <div class="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+              <i class="fa-solid fa-filter text-brand-500"></i> Filter by Review Stage:
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${statusList.map(st => `
+                <button 
+                  onclick="window.adminFilterStatus = '${st}'; render();"
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold transition ${(!window.adminFilterStatus && st === 'All') || window.adminFilterStatus === st ? 'bg-brand-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}"
+                >
+                  ${st}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold">
+                    <th class="p-4">Applicant</th>
+                    <th class="p-4">Applied Position</th>
+                    <th class="p-4">Experience</th>
+                    <th class="p-4">Submission Date</th>
+                    <th class="p-4">Stage / Status</th>
+                    <th class="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${getFilteredAdminApplications().map(app => `
+                    <tr class="hover:bg-slate-50/50 transition">
+                      <td class="p-4">
+                        <div class="font-bold text-slate-900">${escapeHtml(app.applicantName)}</div>
+                        <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                          <span><i class="fa-regular fa-envelope text-slate-400"></i> ${escapeHtml(app.applicantEmail)}</span>
+                          ${app.applicantPhone ? `<span>• <i class="fa-solid fa-phone text-slate-400"></i> ${escapeHtml(app.applicantPhone)}</span>` : ''}
+                        </div>
+                      </td>
+                      <td class="p-4">
+                        <div class="font-semibold text-slate-800">${escapeHtml(app.jobTitle)}</div>
+                        <div class="text-[11px] text-slate-400 font-mono">ID: ${app.jobId}</div>
+                      </td>
+                      <td class="p-4 text-slate-600 font-medium">
+                        ${escapeHtml(app.experience || 'Not specified')}
+                      </td>
+                      <td class="p-4 text-slate-500">${app.appliedDate}</td>
+                      <td class="p-4">
+                        <select 
+                          class="text-xs font-semibold rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 focus:outline-hidden focus:border-brand-500 cursor-pointer"
+                          onchange="state.updateApplicationStatus('${app.id}', this.value)"
+                        >
+                          <option value="Applied" ${app.status === 'Applied' ? 'selected' : ''}>Applied</option>
+                          <option value="Under Review" ${app.status === 'Under Review' ? 'selected' : ''}>Under Review</option>
+                          <option value="Interviewing" ${app.status === 'Interviewing' ? 'selected' : ''}>Interviewing</option>
+                          <option value="Offer Extended" ${app.status === 'Offer Extended' ? 'selected' : ''}>Offer Extended</option>
+                          <option value="Rejected" ${app.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                        </select>
+                      </td>
+                      <td class="p-4 text-right">
+                        <button 
+                          onclick="openAppReviewModal('${app.id}')"
+                          class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 font-semibold rounded-lg text-xs transition"
+                        >
+                          Review & Feedback
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            ${getFilteredAdminApplications().length === 0 ? `
+              <div class="text-center py-12 text-slate-500 text-xs">
+                No scholar applications found matching this status filter.
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function getFilteredAdminApplications() {
+      const filter = window.adminFilterStatus || 'All';
+      if (filter === 'All') return state.applications;
+      return state.applications.filter(a => a.status === filter);
+    }
+
+    function toggleJobStatus(jobId) {
+      const job = state.jobs.find(j => j.id === jobId);
+      if (job) {
+        const nextStatus = job.status === 'Active' ? 'Closed' : 'Active';
+        state.updateJob(jobId, { status: nextStatus });
+      }
+    }
+
+    // ==========================================
+    // NOTIFICATION DRAWER & EMAIL PREVIEWS
+    // ==========================================
+    function toggleNotificationDrawer() {
+      state.showNotificationDrawer = !state.showNotificationDrawer;
+      if (state.showNotificationDrawer) {
+        state.markAllNotificationsAsRead();
+      }
+      render();
+    }
+
+    function renderNotificationDrawer() {
+      if (!state.showNotificationDrawer) return '';
+
+      return `
+        <div class="fixed inset-0 z-50 overflow-hidden bg-slate-900/40 backdrop-blur-xs flex justify-end">
+          <div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-left">
+            
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-envelope"></i>
+                  </div>
+                  <h2 class="text-lg font-bold text-slate-900">Admin Email Alerts</h2>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">
+                  Dispatched to <strong class="text-slate-800">${escapeHtml(state.adminEmail)}</strong>
+                </p>
+              </div>
+              <button onclick="toggleNotificationDrawer()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+              </button>
+            </div>
+
+            <div class="bg-brand-50/70 px-6 py-3 border-b border-brand-100 flex items-center justify-between text-xs">
+              <span class="text-brand-900 font-medium">Recipient: <strong>${escapeHtml(state.adminEmail)}</strong></span>
+              <button onclick="promptAdminEmail()" class="text-brand-600 hover:text-brand-700 font-bold underline">Edit</button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-3 custom-scroll">
+              ${state.notifications.length === 0 ? `
+                <div class="text-center py-12 text-slate-400 text-xs">
+                  <i class="fa-regular fa-envelope-open text-3xl mb-2 text-slate-300"></i>
+                  <p>No email notifications dispatched yet.</p>
+                </div>
+              ` : state.notifications.map(n => `
+                <div 
+                  onclick="openEmailPreviewModal('${n.id}')"
+                  class="p-4 rounded-2xl border border-slate-200/80 bg-white hover:border-brand-300 hover:shadow-xs transition cursor-pointer"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                      <span class="w-2 h-2 rounded-full ${n.read ? 'bg-slate-300' : 'bg-brand-500'}"></span>
+                      ${escapeHtml(n.candidateName)}
+                    </div>
+                    <span class="text-[10px] text-slate-400">${n.timestamp}</span>
+                  </div>
+                  <div class="text-xs text-brand-600 font-semibold mt-1">${escapeHtml(n.jobTitle)}</div>
+                  <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">${escapeHtml(n.preview)}</p>
+                  <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-brand-600 font-semibold">
+                    <span>Inspect Email Details</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+              <span>Automatic Email Notification Service</span>
+              <button onclick="state.markAllNotificationsAsRead()" class="text-slate-600 hover:text-slate-900 font-semibold">Mark All Read</button>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    function openEmailPreviewModal(notifId) {
+      state.activeEmailPreviewModal = notifId;
+      render();
+    }
+
+    function renderEmailPreviewModal() {
+      if (!state.activeEmailPreviewModal) return '';
+      const notif = state.notifications.find(n => n.id === state.activeEmailPreviewModal);
+      if (!notif) return '';
+
+      const app = state.applications.find(a => a.id === notif.appId);
+      const mailtoSubject = encodeURIComponent(`Re: ${notif.subject}`);
+      const mailtoLink = `mailto:${encodeURIComponent(notif.candidateEmail)}?subject=${mailtoSubject}`;
+
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto custom-scroll shadow-2xl border border-slate-100 p-6 sm:p-8 relative">
+            
+            <button onclick="state.activeEmailPreviewModal = null; render();" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="mb-6">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 mb-3 border border-brand-100">
+                <i class="fa-solid fa-envelope-circle-check text-brand-500"></i> Dispatch Confirmation
+              </span>
+              <h2 class="text-xl font-extrabold text-slate-900">${escapeHtml(notif.subject)}</h2>
+              
+              <div class="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="w-16 font-semibold text-slate-500">From:</span>
+                  <span class="text-slate-800 font-mono">ScholarHire Notifications &lt;no-reply@scholarhire.edu&gt;</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-16 font-semibold text-slate-500">To:</span>
+                  <span class="text-brand-600 font-bold font-mono">${escapeHtml(notif.toEmail)}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-16 font-semibold text-slate-500">Date:</span>
+                  <span class="text-slate-600">${notif.timestamp}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="border border-slate-200 rounded-2xl p-6 bg-white shadow-xs space-y-4 text-xs leading-relaxed text-slate-700">
+              <p>Dear Hiring Committee Administrator,</p>
+              
+              <p>
+                A new application has been formally submitted through the <strong>ScholarHire Career Portal</strong> for the position of <strong class="text-slate-900">${escapeHtml(notif.jobTitle)}</strong>.
+              </p>
+
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                <h4 class="font-bold text-slate-900 text-xs border-b border-slate-200 pb-1.5">Candidate Summary</h4>
+                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                  <div><strong class="text-slate-600">Full Name:</strong> ${escapeHtml(notif.candidateName)}</div>
+                  <div><strong class="text-slate-600">Email:</strong> <a href="mailto:${escapeHtml(notif.candidateEmail)}" class="text-brand-600 hover:underline">${escapeHtml(notif.candidateEmail)}</a></div>
+                  <div><strong class="text-slate-600">Phone:</strong> ${escapeHtml(notif.phone || 'N/A')}</div>
+                  <div><strong class="text-slate-600">Experience:</strong> ${escapeHtml(notif.experience || 'N/A')}</div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-xs">
+                  <i class="fa-solid fa-file-pdf text-brand-600 text-base"></i>
+                  <span class="font-semibold text-slate-800">${escapeHtml(notif.resumeFileName || 'Candidate_CV.pdf')}</span>
+                </div>
+                <span class="text-[10px] text-brand-700 font-semibold bg-white px-2 py-0.5 rounded border border-brand-200">Attached to Submission</span>
+              </div>
+
+              ${notif.coverLetter ? `
+                <div>
+                  <strong class="block text-slate-800 mb-1">Applicant Statement:</strong>
+                  <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 italic text-slate-600">
+                    "${escapeHtml(notif.coverLetter)}"
+                  </div>
+                </div>
+              ` : ''}
+
+              <p class="text-slate-500 pt-2 border-t border-slate-100">
+                You can review, shortlist, or schedule this candidate directly within the ScholarHire administration portal.
+              </p>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              <a 
+                href="${mailtoLink}" 
+                class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-2"
+              >
+                <i class="fa-solid fa-reply text-slate-400"></i> Reply to Candidate Email
+              </a>
+
+              <div class="flex items-center gap-2">
+                <button onclick="state.activeEmailPreviewModal = null; render();" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+                  Close
+                </button>
+                ${app ? `
+                  <button 
+                    onclick="state.activeEmailPreviewModal = null; state.currentRole = 'admin'; openAppReviewModal('${app.id}');" 
+                    class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold shadow-md shadow-brand-500/25 transition flex items-center gap-2"
+                  >
+                    <i class="fa-solid fa-user-check"></i> Open Review Pipeline
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // SHARE MODAL & SHARE FUNCTIONALITY
+    // ==========================================
+    function openShareModal(jobId) {
+      const job = state.jobs.find(j => j.id === jobId);
+      if (job) {
+        state.activeShareModal = job;
+        render();
+      }
+    }
+
+    function getJobShareUrl(jobId) {
+      // Create clean URL with job parameter
+      const base = window.location.origin + window.location.pathname;
+      return `${base}?job=${encodeURIComponent(jobId)}`;
+    }
+
+    function copyJobLink(jobId) {
+      const shareUrl = getJobShareUrl(jobId);
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast('🔗 Job link copied to clipboard!', 'success');
+        const copyBtnText = document.getElementById('copy-btn-text');
+        if (copyBtnText) {
+          copyBtnText.innerText = 'Copied!';
+          setTimeout(() => { if (copyBtnText) copyBtnText.innerText = 'Copy Link'; }, 2000);
+        }
+      }).catch(() => {
+        // Fallback for clipboard
+        const input = document.getElementById('share-url-input');
+        if (input) {
+          input.select();
+          document.execCommand('copy');
+          showToast('🔗 Link copied to clipboard!', 'success');
+        }
+      });
+    }
+
+    function triggerNativeShare(jobId) {
+      const job = state.jobs.find(j => j.id === jobId);
+      if (!job) return;
+      const shareUrl = getJobShareUrl(jobId);
+      
+      if (navigator.share) {
+        navigator.share({
+          title: `${job.title} - ScholarHire`,
+          text: `Check out this academic opening for ${job.title} in ${job.department} on ScholarHire. Responsibilities: teaching undergraduates/postgraduates & conducting research.`,
+          url: shareUrl
+        }).catch((err) => console.log('Share dismissed', err));
+      } else {
+        copyJobLink(jobId);
+      }
+    }
+
+    function renderShareModal() {
+      if (!state.activeShareModal) return '';
+      const job = state.activeShareModal;
+      const shareUrl = getJobShareUrl(job.id);
+      const shareText = encodeURIComponent(`Explore this opening for ${job.title} at ScholarHire:`);
+      const encodedUrl = encodeURIComponent(shareUrl);
+
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fade-in">
+          <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 p-6 sm:p-7 relative">
+            
+            <button onclick="state.activeShareModal = null; render();" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-share-nodes"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Share Job Opening</h3>
+                <p class="text-xs text-slate-500">Spread the word to scholars and peers</p>
+              </div>
+            </div>
+
+            <!-- Job mini-card -->
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 mb-5">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-brand-600">${escapeHtml(job.department)}</span>
+              <h4 class="font-bold text-sm text-slate-900 mt-0.5">${escapeHtml(job.title)}</h4>
+              <p class="text-xs text-slate-500 mt-1">${escapeHtml(job.location)} • ${escapeHtml(job.type)}</p>
+            </div>
+
+            <!-- Direct URL Box with Copy Button -->
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Direct Shareable Link</label>
+            <div class="flex items-center gap-2 mb-5">
+              <input 
+                type="text" 
+                id="share-url-input"
+                readonly 
+                value="${escapeHtml(shareUrl)}" 
+                class="flex-1 text-xs px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 font-mono select-all focus:outline-hidden"
+              >
+              <button 
+                onclick="copyJobLink('${job.id}')"
+                class="px-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5"
+              >
+                <i class="fa-regular fa-copy"></i>
+                <span id="copy-btn-text">Copy Link</span>
+              </button>
+            </div>
+
+            <!-- Quick Share Platforms -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">Share via Platforms</label>
+              <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                
+                <!-- Email -->
+                <a 
+                  href="mailto:?subject=${encodeURIComponent(`Academic Position: ${job.title} - ScholarHire`)}&body=${encodeURIComponent(`Hello,\n\nI thought you might be interested in this academic position at ScholarHire:\n\n${job.title}\nDepartment: ${job.department}\nLocation: ${job.location}\n\nView details and apply here:\n${shareUrl}`)}"
+                  class="p-3 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/50 transition flex flex-col items-center gap-1.5 text-slate-700"
+                >
+                  <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
+                    <i class="fa-solid fa-envelope"></i>
+                  </div>
+                  <span class="text-[11px] font-medium">Email</span>
+                </a>
+
+                <!-- LinkedIn -->
+                <a 
+                  href="https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}"
+                  target="_blank"
+                  class="p-3 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/50 transition flex flex-col items-center gap-1.5 text-slate-700"
+                >
+                  <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                  </div>
+                  <span class="text-[11px] font-medium">LinkedIn</span>
+                </a>
+
+                <!-- X / Twitter -->
+                <a 
+                  href="https://twitter.com/intent/tweet?text=${shareText}&url=${encodedUrl}"
+                  target="_blank"
+                  class="p-3 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/50 transition flex flex-col items-center gap-1.5 text-slate-700"
+                >
+                  <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-900 flex items-center justify-center">
+                    <i class="fa-brands fa-x-twitter"></i>
+                  </div>
+                  <span class="text-[11px] font-medium">X (Twitter)</span>
+                </a>
+
+                <!-- WhatsApp -->
+                <a 
+                  href="https://api.whatsapp.com/send?text=${shareText}%20${encodedUrl}"
+                  target="_blank"
+                  class="p-3 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/50 transition flex flex-col items-center gap-1.5 text-slate-700"
+                >
+                  <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i class="fa-brands fa-whatsapp"></i>
+                  </div>
+                  <span class="text-[11px] font-medium">WhatsApp</span>
+                </a>
+
+              </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-end">
+              <button 
+                onclick="state.activeShareModal = null; render();"
+                class="px-5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+              >
+                Done
+              </button>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // OTHER MODALS: DETAILS, APPLY, EDITOR, REVIEW
+    // ==========================================
+    function renderModals() {
+      return `
+        ${renderJobDetailModal()}
+        ${renderApplyModal()}
+        ${renderJobEditorModal()}
+        ${renderAppReviewModal()}
+        ${renderNotificationDrawer()}
+        ${renderEmailPreviewModal()}
+        ${renderShareModal()}
+      `;
+    }
+
+    // Job Detail Modal with detailed responsibilities (teaching & research)
+    function renderJobDetailModal() {
+      if (!state.activeJobModal) return '';
+      const job = state.jobs.find(j => j.id === state.activeJobModal);
+      if (!job) return '';
+
+      const alreadyApplied = state.applications.some(a => a.jobId === job.id && a.applicantEmail.toLowerCase() === state.userEmail.toLowerCase());
+
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fade-in">
+          <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scroll shadow-2xl border border-slate-100 p-6 sm:p-8 relative">
+            
+            <button onclick="closeModals()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="pr-10">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-100">
+                  ${escapeHtml(job.department)}
+                </span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
+                  ${escapeHtml(job.type)}
+                </span>
+                <span class="px-2.5 py-1 rounded-md text-xs font-bold ${job.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}">
+                  ${job.status}
+                </span>
+              </div>
+              <h2 class="text-2xl font-extrabold text-slate-900">${escapeHtml(job.title)}</h2>
+            </div>
+
+            <!-- Key Metrics Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 my-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+              <div>
+                <span class="text-slate-400 block mb-0.5">Location</span>
+                <span class="font-semibold text-slate-800"><i class="fa-solid fa-location-dot text-brand-500 mr-1"></i> ${escapeHtml(job.location)}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block mb-0.5">Compensation</span>
+                <span class="font-semibold text-slate-800"><i class="fa-solid fa-coins text-brand-500 mr-1"></i> ${escapeHtml(job.salary || 'Academic scale')}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block mb-0.5">Experience</span>
+                <span class="font-semibold text-slate-800"><i class="fa-solid fa-layer-group text-brand-500 mr-1"></i> ${escapeHtml(job.experience || 'Flexible')}</span>
+              </div>
+            </div>
+
+            <div class="space-y-6 text-sm text-slate-600 leading-relaxed">
+              
+              <!-- Role Overview -->
+              <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Role Overview & Mission</h4>
+                <p>${escapeHtml(job.description)}</p>
+              </div>
+
+              <!-- KEY DETAILS: TEACHING & RESEARCH DUTIES -->
+              <div class="p-5 rounded-2xl bg-gradient-to-br from-brand-50/80 via-white to-sky-50/50 border border-brand-200/80 shadow-2xs">
+                <div class="flex items-center gap-2 mb-3">
+                  <div class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                  </div>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-brand-900">Key Academic Duties & Expectations</h4>
+                </div>
+
+                <div class="space-y-3 text-xs text-slate-700">
+                  <div class="flex items-start gap-3 p-2.5 rounded-xl bg-white border border-brand-100/70">
+                    <div class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <i class="fa-solid fa-1 text-[11px] font-bold"></i>
+                    </div>
+                    <div>
+                      <strong class="text-slate-900 block font-semibold mb-0.5">1. You will teach undergraduates and postgraduate students</strong>
+                      <p class="text-slate-600 text-[11px] leading-relaxed">
+                        Design and deliver high-impact curricula, conduct interactive seminar lectures, guide coursework discussions, and mentor both undergraduate scholars and postgraduate degree candidates.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-start gap-3 p-2.5 rounded-xl bg-white border border-brand-100/70">
+                    <div class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <i class="fa-solid fa-2 text-[11px] font-bold"></i>
+                    </div>
+                    <div>
+                      <strong class="text-slate-900 block font-semibold mb-0.5">2. Conduct and publish research</strong>
+                      <p class="text-slate-600 text-[11px] leading-relaxed">
+                        Pursue rigorous foundational and applied scholarship, authoring peer-reviewed journal articles, presenting findings at international academic conferences, and securing external research funding.
+                      </p>
+                    </div>
+                  </div>
+
+                  ${job.responsibilities && job.responsibilities.length > 2 ? `
+                    <div class="pt-2 border-t border-brand-100/60">
+                      <span class="text-[11px] font-semibold text-brand-900 block mb-1.5">Additional Responsibilities:</span>
+                      <ul class="space-y-1 text-[11px] list-disc list-inside text-slate-600">
+                        ${job.responsibilities.slice(2).map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Qualifications -->
+              ${job.requirements && job.requirements.length > 0 ? `
+                <div>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Required Qualifications & Criteria</h4>
+                  <ul class="space-y-2 list-disc list-inside text-xs">
+                    ${job.requirements.map(req => `<li>${escapeHtml(req)}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+
+              <div class="text-xs text-slate-400 pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span>Posted Date: ${job.postedDate}</span>
+                ${job.deadline ? `<span>Application Deadline: ${job.deadline}</span>` : ''}
+              </div>
+            </div>
+
+            <!-- Modal Action Buttons: Share, Close, Apply -->
+            <div class="mt-8 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              
+              <!-- Share Action in Modal -->
+              <button 
+                type="button" 
+                onclick="openShareModal('${job.id}')" 
+                class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200 transition flex items-center gap-2"
+              >
+                <i class="fa-solid fa-share-nodes text-brand-500"></i>
+                <span>Share Job Link</span>
+              </button>
+
+              <div class="flex items-center gap-2">
+                <button onclick="closeModals()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+                  Close
+                </button>
+                
+                ${state.currentRole === 'user' ? `
+                  ${alreadyApplied ? `
+                    <button onclick="closeModals(); state.activeTab = 'my-apps'; render();" class="px-5 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold transition flex items-center gap-1.5">
+                      <i class="fa-solid fa-check"></i> Already Applied (Track Status)
+                    </button>
+                  ` : `
+                    <button onclick="closeModals(); openApplyModal('${job.id}')" class="px-6 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold shadow-md shadow-brand-500/25 transition flex items-center gap-2">
+                      <i class="fa-solid fa-paper-plane text-xs"></i> Apply For This Position
+                    </button>
+                  `}
+                ` : `
+                  <button onclick="closeModals(); openJobEditorModal('${job.id}')" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Opening
+                  </button>
+                `}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // Apply for Job Modal (Candidate)
+    function renderApplyModal() {
+      if (!state.activeApplyModal) return '';
+      const job = state.jobs.find(j => j.id === state.activeApplyModal);
+      if (!job) return '';
+
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto custom-scroll shadow-2xl border border-slate-100 p-6 sm:p-8 relative">
+            
+            <button onclick="closeModals()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="mb-6">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-brand-50 text-brand-700 mb-2">
+                Scholar Application
+              </span>
+              <h2 class="text-2xl font-extrabold text-slate-900">Applying for ${escapeHtml(job.title)}</h2>
+              <p class="text-xs text-slate-500 mt-1">${escapeHtml(job.department)} • ${escapeHtml(job.location)}</p>
+              
+              <div class="mt-3 p-3 rounded-xl bg-brand-50/70 border border-brand-100 text-[11px] text-brand-900 space-y-1">
+                <div class="font-semibold flex items-center gap-1.5">
+                  <i class="fa-solid fa-bell text-brand-500"></i> Automatic Email Dispatch Enabled
+                </div>
+                <p class="text-brand-800 text-[11px]">
+                  Submitting will send an automated notification email directly to the hiring administrator (<strong class="font-mono">${escapeHtml(state.adminEmail)}</strong>).
+                </p>
+              </div>
+            </div>
+
+            <form onsubmit="handleApplySubmit(event, '${job.id}')" class="space-y-4">
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                  <input 
+                    type="text" 
+                    id="apply-name" 
+                    required 
+                    placeholder="e.g. Dr. Jane Doe"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-slate-50/50"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address <span class="text-rose-500">*</span></label>
+                  <input 
+                    type="email" 
+                    id="apply-email" 
+                    required 
+                    value="${escapeHtml(state.userEmail)}"
+                    placeholder="name@university.edu"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-slate-50/50"
+                  >
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    id="apply-phone" 
+                    placeholder="+1 (555) 000-0000"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-slate-50/50"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Academic / Research Experience</label>
+                  <input 
+                    type="text" 
+                    id="apply-experience" 
+                    placeholder="e.g. 4 years postdoctoral"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-slate-50/50"
+                  >
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Google Scholar / LinkedIn URL</label>
+                  <input 
+                    type="url" 
+                    id="apply-linkedin" 
+                    placeholder="https://scholar.google.com/citations?user=..."
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-slate-50/50"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Research Website / Portfolio</label>
+                  <input 
+                    type="url" 
+                    id="apply-portfolio" 
+                    placeholder="https://yourlab.edu"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-slate-50/50"
+                  >
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Curriculum Vitae / Resume (PDF) <span class="text-rose-500">*</span></label>
+                <div class="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-brand-300 transition bg-slate-50/40 cursor-pointer">
+                  <input 
+                    type="file" 
+                    id="apply-resume" 
+                    accept=".pdf,.doc,.docx" 
+                    class="hidden"
+                    onchange="handleResumeFileChosen(this)"
+                  >
+                  <label for="apply-resume" class="cursor-pointer flex flex-col items-center">
+                    <i class="fa-solid fa-cloud-arrow-up text-brand-500 text-xl mb-1"></i>
+                    <span id="resume-label" class="text-xs font-semibold text-slate-700">Click to upload your CV (PDF or DOCX)</span>
+                    <span class="text-[10px] text-slate-400 mt-0.5">Supports PDF or Word documents up to 15MB</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Teaching Philosophy & Research Statement</label>
+                <textarea 
+                  id="apply-coverletter" 
+                  rows="3" 
+                  placeholder="Summarize your teaching background (undergraduate/postgraduate) and your primary research interests..."
+                  class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-slate-50/50"
+                ></textarea>
+              </div>
+
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeModals()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+                  Cancel
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-md shadow-brand-500/20 transition flex items-center gap-2">
+                  <i class="fa-solid fa-paper-plane text-xs"></i> Submit & Dispatch Email Alert
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // Admin Job Editor Modal
+    function renderJobEditorModal() {
+      if (!state.activeJobEditorModal) return '';
+      const isEditing = typeof state.activeJobEditorModal === 'object';
+      const job = isEditing ? state.activeJobEditorModal : null;
+
+      const defaultResponsibilities = "You will teach undergraduate and postgraduate students\nConduct and publish research";
+
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto custom-scroll shadow-2xl border border-slate-100 p-6 sm:p-8 relative">
+            
+            <button onclick="closeModals()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="mb-6">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 mb-2">
+                ScholarHire Administrator
+              </span>
+              <h2 class="text-2xl font-extrabold text-slate-900">${isEditing ? 'Edit Job Opening' : 'Post New Scholar Opening'}</h2>
+              <p class="text-xs text-slate-500 mt-1">Specify role details, teaching duties, research expectations, and deadlines.</p>
+            </div>
+
+            <form onsubmit="handleJobEditorSubmit(event, ${isEditing ? `'${job.id}'` : 'null'})" class="space-y-4">
+              
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Position Title <span class="text-rose-500">*</span></label>
+                <input 
+                  type="text" 
+                  id="job-title" 
+                  required 
+                  value="${job ? escapeHtml(job.title) : ''}"
+                  placeholder="e.g. Associate Professor of Neuroscience"
+                  class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                >
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Department / Faculty <span class="text-rose-500">*</span></label>
+                  <input 
+                    type="text" 
+                    id="job-department" 
+                    required 
+                    value="${job ? escapeHtml(job.department) : ''}"
+                    placeholder="e.g. Department of Physics"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Employment Type <span class="text-rose-500">*</span></label>
+                  <select 
+                    id="job-type"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-white"
+                  >
+                    <option value="Full-time" ${job && job.type === 'Full-time' ? 'selected' : ''}>Full-time</option>
+                    <option value="Part-time" ${job && job.type === 'Part-time' ? 'selected' : ''}>Part-time</option>
+                    <option value="Contract" ${job && job.type === 'Contract' ? 'selected' : ''}>Contract</option>
+                    <option value="Internship" ${job && job.type === 'Internship' ? 'selected' : ''}>Fellowship / Internship</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Location <span class="text-rose-500">*</span></label>
+                  <input 
+                    type="text" 
+                    id="job-location" 
+                    required 
+                    value="${job ? escapeHtml(job.location) : ''}"
+                    placeholder="Boston, MA (Hybrid)"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Compensation Range</label>
+                  <input 
+                    type="text" 
+                    id="job-salary" 
+                    value="${job ? escapeHtml(job.salary || '') : ''}"
+                    placeholder="e.g. $110,000 - $140,000 / yr"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                  >
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Experience Level</label>
+                  <input 
+                    type="text" 
+                    id="job-experience" 
+                    value="${job ? escapeHtml(job.experience || '') : ''}"
+                    placeholder="Ph.D. or 3+ yrs research"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                  >
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Position Description <span class="text-rose-500">*</span></label>
+                <textarea 
+                  id="job-description" 
+                  rows="3" 
+                  required
+                  placeholder="Detail the academic role, lab culture, courses taught, and team vision..."
+                  class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                >${job ? escapeHtml(job.description) : ''}</textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Key Responsibilities (Teaching & Research)</label>
+                <textarea 
+                  id="job-responsibilities" 
+                  rows="3" 
+                  placeholder="You will teach undergraduate and postgraduate students&#10;Conduct and publish research"
+                  class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                >${job && job.responsibilities ? escapeHtml(job.responsibilities.join('\n')) : defaultResponsibilities}</textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Requirements & Qualifications (one per line)</label>
+                <textarea 
+                  id="job-requirements" 
+                  rows="3" 
+                  placeholder="Ph.D. in relevant discipline&#10;Track record of peer-reviewed publications&#10;Excellence in student instruction"
+                  class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                >${job && job.requirements ? escapeHtml(job.requirements.join('\n')) : ''}</textarea>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Application Deadline</label>
+                  <input 
+                    type="date" 
+                    id="job-deadline" 
+                    value="${job ? job.deadline || '' : ''}"
+                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                  >
+                </div>
+
+                ${isEditing ? `
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                    <select 
+                      id="job-status"
+                      class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500 bg-white"
+                    >
+                      <option value="Active" ${job.status === 'Active' ? 'selected' : ''}>Active</option>
+                      <option value="Closed" ${job.status === 'Closed' ? 'selected' : ''}>Closed</option>
+                    </select>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeModals()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+                  Cancel
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-md transition">
+                  ${isEditing ? 'Save Changes' : 'Publish Opening'}
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // Admin Review Applicant Modal
+    function renderAppReviewModal() {
+      if (!state.activeAppReviewModal) return '';
+      const app = state.applications.find(a => a.id === state.activeAppReviewModal);
+      if (!app) return '';
+
+      return `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto custom-scroll shadow-2xl border border-slate-100 p-6 sm:p-8 relative">
+            
+            <button onclick="closeModals()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="mb-6">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-brand-50 text-brand-700">
+                  Applicant Review
+                </span>
+                ${getStatusBadge(app.status)}
+              </div>
+              <h2 class="text-2xl font-extrabold text-slate-900">${escapeHtml(app.applicantName)}</h2>
+              <p class="text-xs text-slate-500 mt-1">Applied for <strong class="text-slate-800">${escapeHtml(app.jobTitle)}</strong> on ${app.appliedDate}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs mb-5">
+              <div>
+                <span class="text-slate-400 block mb-0.5">Email</span>
+                <a href="mailto:${escapeHtml(app.applicantEmail)}" class="font-semibold text-brand-600 hover:underline">
+                  ${escapeHtml(app.applicantEmail)}
+                </a>
+              </div>
+              <div>
+                <span class="text-slate-400 block mb-0.5">Phone</span>
+                <span class="font-semibold text-slate-800">${escapeHtml(app.applicantPhone || 'Not provided')}</span>
+              </div>
+              ${app.linkedin ? `
+                <div>
+                  <span class="text-slate-400 block mb-0.5">Profile</span>
+                  <a href="${escapeHtml(app.linkedin)}" target="_blank" class="font-semibold text-brand-600 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-link text-brand-500"></i> Scholar Link
+                  </a>
+                </div>
+              ` : ''}
+              ${app.portfolio ? `
+                <div>
+                  <span class="text-slate-400 block mb-0.5">Website</span>
+                  <a href="${escapeHtml(app.portfolio)}" target="_blank" class="font-semibold text-brand-600 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-globe text-brand-500"></i> Lab / Site
+                  </a>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="mb-5">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Curriculum Vitae</h4>
+              <div class="p-3 bg-brand-50/60 border border-brand-200/80 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-lg bg-brand-500 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-file-pdf"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-slate-800">${escapeHtml(app.resumeFileName || 'Candidate_CV.pdf')}</div>
+                    <div class="text-[10px] text-slate-500">Submitted with application</div>
+                  </div>
+                </div>
+                <button onclick="showToast('Simulating download of ' + '${escapeHtml(app.resumeFileName || 'CV.pdf')}', 'info')" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg shadow-xs">
+                  <i class="fa-solid fa-download mr-1"></i> Download
+                </button>
+              </div>
+            </div>
+
+            ${app.coverLetter ? `
+              <div class="mb-5">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Research & Teaching Statement</h4>
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed italic">
+                  "${escapeHtml(app.coverLetter)}"
+                </div>
+              </div>
+            ` : ''}
+
+            <form onsubmit="handleReviewNotesSubmit(event, '${app.id}')" class="space-y-4 pt-3 border-t border-slate-100">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Update Application Stage</label>
+                <select id="review-stage" class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-800 bg-white">
+                  <option value="Applied" ${app.status === 'Applied' ? 'selected' : ''}>Applied (New)</option>
+                  <option value="Under Review" ${app.status === 'Under Review' ? 'selected' : ''}>Under Review</option>
+                  <option value="Interviewing" ${app.status === 'Interviewing' ? 'selected' : ''}>Interviewing / Seminar</option>
+                  <option value="Offer Extended" ${app.status === 'Offer Extended' ? 'selected' : ''}>Offer Extended</option>
+                  <option value="Rejected" ${app.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Committee Notes / Faculty Feedback</label>
+                <textarea 
+                  id="review-notes" 
+                  rows="3" 
+                  placeholder="Record interview notes, departmental feedback, or offer details..."
+                  class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-hidden focus:border-brand-500"
+                >${escapeHtml(app.notes || '')}</textarea>
+              </div>
+
+              <div class="pt-2 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeModals()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">
+                  Close
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-md transition">
+                  Update Candidate
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // Footer Component
+    function renderFooter() {
+      return `
+        <footer class="bg-white border-t border-slate-200/80 mt-auto py-8">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
+              <span class="font-bold text-slate-700">ScholarHire Academic & Career Tracking</span>
+              <span>• Light Blue Theme</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <button onclick="promptAdminEmail()" class="text-slate-500 hover:text-brand-600 transition">
+                <i class="fa-regular fa-envelope mr-1"></i> Admin Alert Email: <span class="font-mono text-slate-700">${escapeHtml(state.adminEmail)}</span>
+              </button>
+              <span>•</span>
+              <button onclick="state.resetToDefaults()" class="text-slate-400 hover:text-slate-700 transition">
+                <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Reset Demo Data
+              </button>
+            </div>
+          </div>
+        </footer>
+      `;
+    }
+
+    // Controllers & Handlers
+    function openJobDetailModal(jobId) {
+      state.activeJobModal = jobId;
+      render();
+    }
+
+    function openApplyModal(jobId) {
+      state.activeApplyModal = jobId;
+      render();
+    }
+
+    function openJobEditorModal(jobId = null) {
+      if (jobId) {
+        state.activeJobEditorModal = state.jobs.find(j => j.id === jobId);
+      } else {
+        state.activeJobEditorModal = true;
+      }
+      render();
+    }
+
+    function openAppReviewModal(appId) {
+      state.activeAppReviewModal = appId;
+      render();
+    }
+
+    function closeModals() {
+      state.activeJobModal = null;
+      state.activeApplyModal = null;
+      state.activeJobEditorModal = null;
+      state.activeAppReviewModal = null;
+      state.activeEmailPreviewModal = null;
+      state.activeShareModal = null;
+      render();
+    }
+
+    function handleResumeFileChosen(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('resume-label').innerText = 'Selected: ' + input.files[0].name;
+        document.getElementById('resume-label').classList.add('text-brand-600');
+      }
+    }
+
+    function handleApplySubmit(e, jobId) {
+      e.preventDefault();
+      const job = state.jobs.find(j => j.id === jobId);
+      if (!job) return;
+
+      const name = document.getElementById('apply-name').value.trim();
+      const email = document.getElementById('apply-email').value.trim();
+      const phone = document.getElementById('apply-phone').value.trim();
+      const experience = document.getElementById('apply-experience').value.trim();
+      const linkedin = document.getElementById('apply-linkedin').value.trim();
+      const portfolio = document.getElementById('apply-portfolio').value.trim();
+      const coverLetter = document.getElementById('apply-coverletter').value.trim();
+      const resumeInput = document.getElementById('apply-resume');
+
+      let resumeFileName = `${name.replace(/\s+/g, '_')}_CV.pdf`;
+      if (resumeInput && resumeInput.files && resumeInput.files[0]) {
+        resumeFileName = resumeInput.files[0].name;
+      }
+
+      state.addApplication({
+        jobId: job.id,
+        jobTitle: job.title,
+        applicantName: name,
+        applicantEmail: email,
+        applicantPhone: phone,
+        experience: experience,
+        linkedin: linkedin,
+        portfolio: portfolio,
+        coverLetter: coverLetter,
+        resumeFileName: resumeFileName
+      });
+
+      state.userEmail = email;
+      state.save();
+
+      closeModals();
+      state.activeTab = 'my-apps';
+      render();
+    }
+
+    function handleJobEditorSubmit(e, jobId = null) {
+      e.preventDefault();
+      const title = document.getElementById('job-title').value.trim();
+      const department = document.getElementById('job-department').value.trim();
+      const type = document.getElementById('job-type').value;
+      const location = document.getElementById('job-location').value.trim();
+      const salary = document.getElementById('job-salary').value.trim();
+      const experience = document.getElementById('job-experience').value.trim();
+      const description = document.getElementById('job-description').value.trim();
+      const deadline = document.getElementById('job-deadline').value;
+      
+      const responsibilitiesRaw = document.getElementById('job-responsibilities').value;
+      const responsibilities = responsibilitiesRaw
+        .split('\n')
+        .map(r => r.trim())
+        .filter(r => r.length > 0);
+
+      const requirementsRaw = document.getElementById('job-requirements').value;
+      const requirements = requirementsRaw
+        .split('\n')
+        .map(r => r.trim())
+        .filter(r => r.length > 0);
+
+      if (jobId) {
+        const statusSelect = document.getElementById('job-status');
+        const status = statusSelect ? statusSelect.value : 'Active';
+        state.updateJob(jobId, {
+          title,
+          department,
+          type,
+          location,
+          salary,
+          experience,
+          description,
+          responsibilities,
+          requirements,
+          deadline,
+          status
+        });
+      } else {
+        state.addJob({
+          title,
+          department,
+          type,
+          location,
+          salary,
+          experience,
+          description,
+          responsibilities,
+          requirements,
+          deadline
+        });
+      }
+
+      closeModals();
+    }
+
+    function handleReviewNotesSubmit(e, appId) {
+      e.preventDefault();
+      const stage = document.getElementById('review-stage').value;
+      const notes = document.getElementById('review-notes').value.trim();
+      state.updateApplicationStatus(appId, stage, notes);
+      closeModals();
+    }
+
+    function promptUserEmail() {
+      const newEmail = prompt('Enter candidate email address to filter and manage your applications:', state.userEmail);
+      if (newEmail && newEmail.trim()) {
+        state.userEmail = newEmail.trim();
+        state.save();
+        render();
+        showToast(`Switched active candidate to ${state.userEmail}`, 'info');
+      }
+    }
+
+    function promptAdminEmail() {
+      const newEmail = prompt('Enter the administrator email address to receive new application alerts:', state.adminEmail);
+      if (newEmail && newEmail.trim()) {
+        state.setAdminEmail(newEmail.trim());
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
